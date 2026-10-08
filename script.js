@@ -1,8 +1,18 @@
 
 const resetButton = document.querySelector('#reset');
 const currentPlayer = document.querySelector('#current-player');
+const message = document.querySelector('#message');
+const xScore = document.querySelector('#x-score');
+const oScore = document.querySelector('#o-score');
+const drawScore = document.querySelector('#draw-score');
 const squares = document.querySelectorAll('.square');
-const gameOver =  value = false ; 
+let gameOver = false;
+
+const scores = {
+  X: 0,
+  O: 0,
+  draw: 0
+};
 
 const winningLines = [
 [0,1,2],
@@ -40,15 +50,33 @@ function switchPlayer() {
 
 function playTurn(event) {
   const square = event.target;
-  console.log('Event Square:', square);
-  if (square.textContent === "" && gameOver === false ) {
-    square.textContent = currentPlayer.textContent;
-    checkWinner();
-    switchPlayer();
 
-
+  if (gameOver || square.textContent !== '') {
+    return;
   }
 
+  square.textContent = currentPlayer.textContent;
+  const winner = checkWinner();
+
+  if (winner) {
+    gameOver = true;
+    scores[winner] += 1;
+    updateScores();
+    message.textContent = `${winner} wins!`;
+    disableSquares();
+    return;
+  }
+
+  if (isBoardFull()) {
+    gameOver = true;
+    scores.draw += 1;
+    updateScores();
+    message.textContent = 'Draw!';
+    disableSquares();
+    return;
+  }
+
+  switchPlayer();
 }
 
 
@@ -57,20 +85,29 @@ function checkWinner() {
     const first = squares[line[0]].textContent;
     const second = squares[line[1]].textContent;
     const third = squares[line[2]].textContent;
-    if (first !== '' && first === second && first === third )  {
-      console.log(first + ' wins!' );
-      
+
+    if (first !== '' && first === second && first === third) {
+      return first;
     }
   }
+
+  return null;
 }
 
-function gameLoop(event) {
-  const square=event.target
-  if (gameOver.value || square.textContent !==''){
-    return;
+function isBoardFull() {
+  return Array.from(squares).every((square) => square.textContent !== '');
+}
 
-    const winner = checkWinner();
-  } 
+function updateScores() {
+  xScore.textContent = scores.X;
+  oScore.textContent = scores.O;
+  drawScore.textContent = scores.draw;
+}
+
+function disableSquares() {
+  for (const square of squares) {
+    square.disabled = true;
+  }
 }
 
 
@@ -80,14 +117,13 @@ for (const square of squares) {
   square.addEventListener('click', playTurn)
 }
 
-function resetGame(event) { 
+function resetGame() {
+  gameOver = false;
+  message.textContent = 'winner';
+  currentPlayer.textContent = 'X';
 
-  
-  for (const square of squares){
+  for (const square of squares) {
     square.textContent = '';
-    currentPlayer.textContent = "X"
-    gameOver.value = false
+    square.disabled = false;
   }
-  
-
 }
